@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "html_resources"
+version = "0.1"
+authors = [
+    {name = "Souheil Chelfouh", email = "trollfot@gmail.com"},
+]
+requires-python = ">=3.11"
+classifiers = ["License :: OSI Approved :: MIT License"]
+dependencies = [
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "webtest"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["html_resources"]
+namespaces = false

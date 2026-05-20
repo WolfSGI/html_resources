@@ -1,0 +1,37 @@
+from pathlib import Path
+import pytest
+from html_resources.static import Filestore, FileInfo, StaticAccessor
+
+HERE = Path(__file__).parent.resolve()
+RESOURCES = HERE / "resources"
+OTHER_RESOURCES = HERE / "other_resources"
+
+
+def test_accessor():
+    empty = StaticAccessor()
+    assert len(empty) == 0
+
+
+def test_add():
+    static = StaticAccessor()
+    assert len(static) == 0
+
+    store = Filestore.from_discovery(OTHER_RESOURCES)
+    static.add(store)
+    assert len(static) == 5
+    assert static == store.get_store()
+
+    store = Filestore.from_discovery(RESOURCES)
+    static.add(store)
+    assert len(static) == 6
+
+
+def test_add_duplicate():
+    static = StaticAccessor()
+    assert len(static) == 0
+
+    store = Filestore.from_discovery(OTHER_RESOURCES)
+    static.add(store)
+    static.add(store)
+
+    assert len(static) == 5
