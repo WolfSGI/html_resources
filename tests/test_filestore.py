@@ -1,4 +1,4 @@
-from pathlib import Path
+from pathlib import Path, PosixPath
 import importlib.resources
 
 import pytest
@@ -34,66 +34,64 @@ def test_filestore_add():
         last_modified=1779299331.926828,
         size=434
     )
-    assert RESOURCES / 'sample.json' in store.get_store()
+    assert PosixPath('sample.json') in store.get_store()
 
 
 def test_filestore_discovery():
     store = Filestore.from_discovery(OTHER_RESOURCES)
-    assert len(store) == 5
-    assert list(store) == [
-        FileInfo(
+    assert dict(store) == {
+        PosixPath('img/border.jpg'): FileInfo(
             content_type='image/jpeg',
             filepath=OTHER_RESOURCES / 'img' / 'border.jpg',
             last_modified=1779298176.7173798,
             size=364563,
         ),
-        FileInfo(
+        PosixPath('resources/example.css'): FileInfo(
             content_type='text/css',
             filepath=OTHER_RESOURCES / 'resources' / 'example.css',
             last_modified=1779298099.4646437,
             size=38,
         ),
-        FileInfo(
+        PosixPath('resources/hello.js'): FileInfo(
             content_type='text/javascript',
             filepath=OTHER_RESOURCES / 'resources' / 'hello.js',
             last_modified=1779297986.238115,
             size=55,
         ),
-        FileInfo(
+        PosixPath('docs/user.json'): FileInfo(
             content_type='application/json',
             filepath=OTHER_RESOURCES / 'docs' / 'user.json',
             last_modified=1779298750.9644542,
             size=92,
         ),
-        FileInfo(
+        PosixPath('docs/french.txt'): FileInfo(
             content_type='text/plain',
             filepath=OTHER_RESOURCES / 'docs' / 'french.txt',
             last_modified=1779298712.8505802,
             size=39,
         ),
-    ]
+    }
+
 
 def test_filestore_discovery_restrict():
     store = Filestore.from_discovery(OTHER_RESOURCES, restrict=("*.js",))
-    assert len(store) == 1
-    assert list(store) == [
-        FileInfo(
+    assert dict(store) == {
+        PosixPath('resources/hello.js'): FileInfo(
             content_type='text/javascript',
             filepath=OTHER_RESOURCES / 'resources' / 'hello.js',
             last_modified=1779297986.238115,
             size=55,
         )
-    ]
+    }
 
 
 def test_filestore_package_directory():
     store = Filestore.from_package_directory("html_resources:testing")
-    assert len(store) == 1
-    assert list(store) == [
-        FileInfo(
+    assert dict(store) == {
+        PosixPath('whatever.txt'): FileInfo(
             content_type='text/plain',
             filepath=THERE / 'whatever.txt',
             last_modified=1779307220.7250397,
             size=29,
         )
-    ]
+    }

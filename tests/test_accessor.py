@@ -12,7 +12,7 @@ def test_accessor():
     assert len(empty) == 0
 
 
-def test_add():
+def test_accessor_add():
     static = StaticAccessor()
     assert len(static) == 0
 
@@ -26,7 +26,7 @@ def test_add():
     assert len(static) == 6
 
 
-def test_add_duplicate():
+def test_accessor_add_duplicate():
     static = StaticAccessor()
     assert len(static) == 0
 
@@ -35,3 +35,12 @@ def test_add_duplicate():
     static.add(store)
 
     assert len(static) == 5
+
+
+def test_accessor_add_with_prefix_root():
+    static = StaticAccessor()
+    assert len(static) == 0
+
+    store = Filestore.from_discovery(OTHER_RESOURCES)
+    static.add(store, prefix="/")
+    assert static == store.get_store()

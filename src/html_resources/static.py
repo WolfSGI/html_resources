@@ -109,8 +109,15 @@ class Filestore:
 
 class StaticAccessor(dict[Path, FileInfo]):
 
-    def add(self, filestore: Filestore, prefix=None):
-        if not prefix:
+    def add(
+            self,
+            filestore: Filestore,
+            prefix: str | PurePosixPath | None = None
+    ):
+        if prefix:
+            prefix = PurePosixPath(prefix)
+
+        if not prefix or not prefix.name:
             self |= filestore.get_store()
         else:
             for uri, info in filestore:
