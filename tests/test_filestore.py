@@ -2,7 +2,7 @@ from pathlib import Path, PosixPath
 import importlib.resources
 
 import pytest
-from html_resources.static import Filestore, FileInfo
+from html_resources.store import Filestore, FileInfo
 
 
 HERE = Path(__file__).parent.resolve()

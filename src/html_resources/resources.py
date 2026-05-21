@@ -66,12 +66,6 @@ class CSSResource(Resource):
         return f"""<link rel="stylesheet" {value} />\r\n""".encode()
 
 
-known_extensions = {
-    "js": JSResource,
-    "css": CSSResource,
-}
-
-
 class NeededResources(Hashable, MutableSet[JSResource | CSSResource]):
 
     __hash__ = MutableSet._hash
