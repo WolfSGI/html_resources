@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import NamedTuple, Protocol
 from pathlib import PurePosixPath
 from functools import cached_property
 from collections.abc import Hashable, MutableSet
@@ -26,7 +26,7 @@ class Resource(NamedTuple):
             if not self.dependencies:
                 return
             for dependency in self.dependencies:
-                yield from dependency.__lineage__()
+                yield from dependency.__lineage__
                 yield dependency
 
         def filtering():
@@ -66,7 +66,7 @@ class CSSResource(Resource):
         return f"""<link rel="stylesheet" {value} />\r\n""".encode()
 
 
-class NeededResources(Hashable, MutableSet[JSResource | CSSResource]):
+class NeededResources(Hashable, MutableSet[Resource]):
 
     __hash__ = MutableSet._hash
 
@@ -94,7 +94,7 @@ class NeededResources(Hashable, MutableSet[JSResource | CSSResource]):
         return self
 
     def add(self, value):
-        for resource in value.__lineage__():
+        for resource in value.__lineage__:
             self.data.add(value)
 
     def discard(self, value):
@@ -133,7 +133,7 @@ class NeededResources(Hashable, MutableSet[JSResource | CSSResource]):
         seen = set()
         final = []
         for resource in self:
-            for r in resource.__lineage__():
+            for r in resource.__lineage__:
                 if r not in seen:
                     final.append(r)
                     seen.add(r)
