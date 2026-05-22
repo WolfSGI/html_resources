@@ -6,7 +6,7 @@ import importlib.resources
 from typing import Sequence, Iterable
 from pathlib import PurePosixPath, Path
 from mimetypes import guess_type
-from .resources import Resource
+from .resources import Resource, JSResource, CSSResource
 from .store import Filestore
 
 
@@ -42,29 +42,37 @@ class Library(Filestore):
         bottom: bool = False,
         dependencies: Sequence[Resource] | None = None,
     ) -> Resource:
-        fullpath = self.base_path / path
-        if not fullpath.is_file():
-            raise TypeError(f"{path} is not a file.")
+        path = PurePosixPath(path)
+        if path.is_absolute():
+            uri = self.name / path.relative_to(self.base_path)
+        else:
+            uri = self.name / path
 
-        if not fullpath.suffix:
+        if not uri in self._store:
+            raise KeyError(f"{uri} does not belong to this library.")
+
+        if not uri.suffix:
             raise NameError("Filename needs an extension.")
 
-        ext = fullpath.suffix[1:]
-        cls = known_extensions.get(ext)
+        ext = uri.suffix[1:]
+        cls = self.known_extensions.get(ext)
         if not cls:
             raise TypeError("Unknown extension.")
 
-        hash_base64 = base64.b64encode(
-            generate_hash(fullpath, HashAlgorithm.sha256),
-        ).decode("utf-8")
-        integrity = f"sha256-{hash_base64}"
+        info = self._store[uri]
+        if not info.digest:
+            hash_base64 = base64.b64encode(
+                generate_hash(info.filepath, HashAlgorithm.sha256),
+            ).decode("utf-8")
+            integrity = f"sha256-{hash_base64}"
+            info = self._store[uri] = info._replace(digest=integrity)
 
         if dependencies is not None:
             dependencies = tuple(dependencies)
         resource = cls(
-            f"/{self.name}/{path}",
+            uri,
             bottom=bottom,
-            integrity=integrity,
+            integrity=info.digest,
             dependencies=dependencies,
         )
         return resource

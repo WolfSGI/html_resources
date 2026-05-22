@@ -20,6 +20,7 @@ class FileInfo(NamedTuple):
     size: int
     last_modified: float
     content_type: str
+    digest: str | None = None
 
 
 def generate_hash(filepath: Path, algorithm: HashAlgorithm) -> str:
@@ -34,10 +35,11 @@ def generate_hash(filepath: Path, algorithm: HashAlgorithm) -> str:
 
 
 class Filestore:
+    name: PurePosixPath
     base_path: Path
     _store: dict[PurePosixPath, FileInfo]
 
-    def __init__(self, base_path: str | Path, *args, **kwargs):
+    def __init__(self, name: str | PurePosixPath, base_path: str | Path):
         directory = Path(base_path)
         if not directory.exists():
             raise OSError(f"{directory} does not exist.")
@@ -45,9 +47,13 @@ class Filestore:
             raise TypeError("Library base path must be a directory.")
         if not base_path.is_absolute():
             raise ValueError("Base path needs to be absolute.")
+        self.name = PurePosixPath(name)
         self.base_path = directory
         self._store = dict()
-        super().__init__(*args, **kwargs)
+
+    @property
+    def store(self) -> Mapping[PurePosixPath, Path]:
+        return MappingProxyType(self._store)
 
     def __getitem__(self, path: str | Path):
         path = Path(path)
@@ -82,15 +88,17 @@ class Filestore:
             last_modified=stats.st_mtime,
             content_type=content_type,
         )
-        self._store[uri] = info
+        self._store[self.name / uri] = info
         return info
 
-    def get_store(self) -> Mapping[PurePosixPath, Path]:
-        return MappingProxyType(self._store)
-
     @classmethod
-    def from_discovery(cls, base_path: str | Path, restrict=("*",)):
-        store = cls(base_path)
+    def from_discovery(
+            cls,
+            name: str | PurePosixPath,
+            base_path: str | Path,
+            restrict=("*",)
+    ):
+        store = cls(name, base_path)
         for matcher in restrict:
             for path in store.base_path.rglob(matcher):
                 if not path.is_dir():
@@ -98,10 +106,15 @@ class Filestore:
         return store
 
     @classmethod
-    def from_package_directory(cls, package_dir: str, restrict=("*",)):
+    def from_package_directory(
+            cls,
+            name: str | PurePosixPath,
+            package_dir: str,
+            restrict=("*",)
+    ):
         # package_dir of form:  package_name:path
         pkg, resource_name = package_dir.split(":")
         resource = Path(
             importlib.resources.files(pkg) / resource_name
         )
-        return cls.from_discovery(resource, restrict=restrict)
+        return cls.from_discovery(name, resource, restrict=restrict)

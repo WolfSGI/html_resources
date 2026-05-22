@@ -11,6 +11,7 @@ authors = [
 requires-python = ">=3.11"
 classifiers = ["License :: OSI Approved :: MIT License"]
 dependencies = [
+    "orderedsets"
 ]
 
 [project.optional-dependencies]

@@ -95,7 +95,7 @@ class NeededResources(Hashable, MutableSet[JSResource | CSSResource]):
 
     def add(self, value):
         for resource in value.__lineage__():
-        self.data.add(value)
+            self.data.add(value)
 
     def discard(self, value):
         self.data.discard(value)
