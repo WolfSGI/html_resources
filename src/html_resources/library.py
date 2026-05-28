@@ -1,11 +1,8 @@
-import os
 import base64
 import hashlib
 import enum
-import importlib.resources
-from typing import Sequence, Iterable
+from typing import Sequence
 from pathlib import PurePosixPath, Path
-from mimetypes import guess_type
 from .resources import Resource, JSResource, CSSResource
 from .store import Filestore
 

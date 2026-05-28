@@ -1,9 +1,8 @@
 import os
-import base64
 import hashlib
 import enum
 import importlib.resources
-from typing import Sequence, Mapping, NamedTuple
+from typing import Mapping, NamedTuple
 from pathlib import PurePosixPath, Path
 from mimetypes import guess_type
 from types import MappingProxyType

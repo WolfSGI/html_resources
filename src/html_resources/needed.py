@@ -1,5 +1,4 @@
 from functools import lru_cache
-from pathlib import PurePosixPath
 from collections.abc import Hashable, MutableSet, Iterable
 from orderedsets import OrderedSet
 from html_resources.resources import Resource
