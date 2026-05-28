@@ -5,13 +5,32 @@ import pytest
 from orderedsets import OrderedSet
 from html_resources.store import Filestore, FileInfo
 from html_resources.library import Library
-from html_resources.resources import JSResource, CSSResource, NeededResources
+from html_resources.resources import Resource, JSResource, CSSResource
+from html_resources.needed import NeededResources, expand_resources
 
 
 HERE = Path(__file__).parent.resolve()
 THERE = Path(importlib.resources.files("html_resources") / "testing")
 RESOURCES = HERE / "resources"
 OTHER_RESOURCES = HERE / "other_resources"
+
+
+def test_expand_single():
+    resource = Resource(
+        path="/whatever"
+    )
+    expanded = expand_resources([resource])
+    assert tuple(expanded) == (resource,)
+
+
+def test_expand_complex():
+    resource1 = Resource(path="/1")
+    resource2 = Resource(path="/2", dependencies=(resource1,))
+    resource3 = Resource(path="/3", dependencies=(resource2,))
+    resource4 = Resource(path="/4", dependencies=(resource2, resource3))
+
+    expanded = expand_resources([resource4, resource2])
+    assert tuple(expanded) == (resource1,resource2, resource3, resource4)
 
 
 def test_needed_with_dependency():
@@ -39,7 +58,7 @@ def test_needed_with_dependency():
 
     needed = NeededResources("/resources")
     needed.add(css_resource)
-    assert needed.unfold() == [
+    assert needed.unfold() == (
         js_resource,
         css_resource,
-    ]
+    )
