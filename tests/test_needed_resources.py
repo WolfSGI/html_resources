@@ -56,7 +56,7 @@ def test_needed_with_dependency():
         dependencies=(js_resource,)
     )
 
-    needed = NeededResources("/resources")
+    needed = NeededResources()
     needed.add(css_resource)
     assert needed.unfold() == (
         js_resource,

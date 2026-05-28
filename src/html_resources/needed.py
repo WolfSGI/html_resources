@@ -29,8 +29,7 @@ class NeededResources(Hashable, MutableSet[Resource]):
 
     __hash__ = MutableSet._hash
 
-    def __init__(self, root: str | PurePosixPath, *args, **kwargs):
-        self.root = root
+    def __init__(self, *args, **kwargs):
         self.data = OrderedSet(*args, **kwargs)
 
     def __contains__(self, value):
@@ -46,7 +45,7 @@ class NeededResources(Hashable, MutableSet[Resource]):
         return repr(self.data)
 
     def __or__(self, other: set):
-        return NeededResources(self.root, self.data | other)
+        return NeededResources(self.data | other)
 
     def __ior__(self, other: set):
         self.data |= other
@@ -65,33 +64,11 @@ class NeededResources(Hashable, MutableSet[Resource]):
         self.data = OrderedSet((*other, *self.data))
         return self
 
-    def add_resource(
-        self,
-        path: str,
-        rtype: str,
-        *,
-        root: str | None = None,
-        bottom: bool = False,
-        integrity: str | None = None,
-        crossorigin: str | None = None,
-    ):
-        if factory := known_extensions.get(rtype):
-            resource = factory(
-                path,
-                root=root,
-                bottom=bottom,
-                integrity=integrity,
-                crossorigin=crossorigin,
-            )
-            self.add(resource)
-        else:
-            raise KeyError(f"Unknown resource type: {rtype}.")
-
     def unfold(self) -> tuple[Resource, ...]:
         return tuple(expand_resources(self.data))
 
-    def apply(self, body: str | bytes, application_uri: str = "") -> bytes:
-        if len(self) == 0:
+    def apply(self, body: str | bytes, base_uri: str = "") -> bytes:
+        if len(self.data) == 0:
             return body
 
         if isinstance(body, str):
@@ -99,7 +76,6 @@ class NeededResources(Hashable, MutableSet[Resource]):
 
         top = b""
         bottom = b""
-        base_uri = multi_urljoin(application_uri, self.root)
         for resource in self.unfold():
             if resource.bottom:
                 bottom += resource.render(base_uri)
