@@ -1,17 +1,9 @@
 import os
-import hashlib
-import enum
 import importlib.resources
 from typing import Mapping, NamedTuple
 from pathlib import PurePosixPath, Path
 from mimetypes import guess_type
 from types import MappingProxyType
-
-
-class HashAlgorithm(enum.Enum):
-    sha256 = hashlib.sha256
-    sha384 = hashlib.sha384
-    sha512 = hashlib.sha512
 
 
 class FileInfo(NamedTuple):
@@ -20,17 +12,6 @@ class FileInfo(NamedTuple):
     last_modified: float
     content_type: str
     digest: str | None = None
-
-
-def generate_hash(filepath: Path, algorithm: HashAlgorithm) -> str:
-    hashed = algorithm.value()
-    with filepath.open("rb") as f:
-        while True:
-            data = f.read(1024 * 32)
-            if not data:
-                break
-            hashed.update(data)
-    return hashed.digest()
 
 
 class Filestore:
@@ -117,3 +98,15 @@ class Filestore:
             importlib.resources.files(pkg) / resource_name
         )
         return cls.from_discovery(name, resource, restrict=restrict)
+
+
+class Repository(dict[PurePosixPath, FileInfo]):
+
+    def add(self, filestore: Filestore):
+        self |= filestore
+
+    def match(self, path: str | PurePosixPath) -> FileInfo:
+        path = PurePosixPath(path)
+        if (info := self.get(path, None)) is not None:
+            return info
+        raise KeyError(path)

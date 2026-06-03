@@ -2,7 +2,7 @@ from pathlib import Path, PurePosixPath
 import importlib.resources
 
 import pytest
-from html_resources.store import Filestore, FileInfo
+from html_resources.store import Filestore, FileInfo, Repository
 
 
 HERE = Path(__file__).parent.resolve()
@@ -93,5 +93,51 @@ def test_filestore_package_directory():
             filepath=THERE / 'whatever.txt',
             last_modified=1779307220.7250397,
             size=29,
+        )
+    }
+
+
+def test_empty_repository():
+    empty = Repository()
+    assert len(empty) == 0
+
+
+def test_repository_add():
+    repository = Repository()
+    assert len(repository) == 0
+
+    store = Filestore.from_discovery("/", OTHER_RESOURCES)
+    repository.add(store)
+    assert len(repository) == 5
+    assert repository == store.store
+
+    store = Filestore.from_discovery("/", RESOURCES)
+    repository.add(store)
+    assert len(repository) == 6
+
+
+def test_repository_add_duplicate():
+    repository = Repository()
+    assert len(repository) == 0
+
+    store = Filestore.from_discovery("/", OTHER_RESOURCES)
+    repository.add(store)
+    repository.add(store)
+
+    assert len(repository) == 5
+
+
+def test_repository_add_with_prefix_root():
+    repository = Repository()
+    assert len(repository) == 0
+
+    store = Filestore.from_discovery("/some_prefix", RESOURCES)
+    repository.add(store)
+    assert repository == {
+        PurePosixPath('/some_prefix/sample.json'): FileInfo(
+            content_type='application/json',
+            filepath=RESOURCES / 'sample.json',
+            last_modified=1779299331.926828,
+            size=434
         )
     }

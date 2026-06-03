@@ -65,23 +65,3 @@ class NeededResources(Hashable, MutableSet[Resource]):
 
     def unfold(self) -> tuple[Resource, ...]:
         return tuple(expand_resources(self.data))
-
-    def apply(self, body: str | bytes, base_uri: str = "") -> bytes:
-        if len(self.data) == 0:
-            return body
-
-        if isinstance(body, str):
-            body = body.encode()
-
-        top = b""
-        bottom = b""
-        for resource in self.unfold():
-            if resource.bottom:
-                bottom += resource.render(base_uri)
-            else:
-                top += resource.render(base_uri)
-        if top:
-            body = body.replace(b"</head>", top + b"</head>", 1)
-        if bottom:
-            body = body.replace(b"</body>", bottom + b"</body>", 1)
-        return body
