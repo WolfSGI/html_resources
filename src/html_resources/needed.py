@@ -4,7 +4,6 @@ from orderedsets import OrderedSet
 from .resources import Resource, JSResource, CSSResource
 
 
-@lru_cache(maxsize=100)
 def lineage(resource: Resource):
     if resource.dependencies:
         for dependency in resource.dependencies:
@@ -12,10 +11,15 @@ def lineage(resource: Resource):
             yield dependency
 
 
+@lru_cache(maxsize=100)
+def expand_resource(resource: Resource):
+    return tuple(lineage(resource))
+
+
 def expand_resources(resources: Iterable[Resource]):
     seen = set()
     for resource in resources:
-        for parent in lineage(resource):
+        for parent in expand_resource(resource):
             if parent not in seen:
                 seen.add(parent)
                 yield parent
