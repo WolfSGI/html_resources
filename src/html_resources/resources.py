@@ -3,7 +3,7 @@ from pathlib import PurePosixPath
 
 
 def multi_urljoin(*parts):
-    return "/".join(part.strip("/") for part in parts if part)
+    return "/".join(str(part).strip("/") for part in parts if part)
 
 
 class Resource(NamedTuple):

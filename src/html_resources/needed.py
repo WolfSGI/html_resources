@@ -1,7 +1,7 @@
 from functools import lru_cache
 from collections.abc import Hashable, MutableSet, Iterable
 from orderedsets import OrderedSet
-from html_resources.resources import Resource
+from .resources import Resource, JSResource, CSSResource
 
 
 @lru_cache(maxsize=100)
@@ -27,6 +27,11 @@ def expand_resources(resources: Iterable[Resource]):
 class NeededResources(Hashable, MutableSet[Resource]):
 
     __hash__ = MutableSet._hash
+
+    known_extensions = {
+        "js": JSResource,
+        "css": CSSResource,
+    }
 
     def __init__(self, *args, **kwargs):
         self.data = OrderedSet(*args, **kwargs)
@@ -65,3 +70,25 @@ class NeededResources(Hashable, MutableSet[Resource]):
 
     def unfold(self) -> tuple[Resource, ...]:
         return tuple(expand_resources(self.data))
+
+    def add_resource(
+        self,
+        path: str,
+        rtype: str,
+        *,
+        root: str | None = None,
+        bottom: bool = False,
+        integrity: str | None = None,
+        crossorigin: str | None = None,
+    ):
+        if factory := self.known_extensions.get(rtype):
+            resource = factory(
+                path,
+                root=root,
+                bottom=bottom,
+                integrity=integrity,
+                crossorigin=crossorigin,
+            )
+            self.add(resource)
+        else:
+            raise KeyError(f"Unknown resource type: {rtype}.")
