@@ -27,7 +27,7 @@ class JSResource(Resource):
             value += f' crossorigin="{self.crossorigin}"'
         if self.integrity:
             value += f' integrity="{self.integrity}"'
-        return f"""<script {value}></script>\r\n""".encode()
+        return f"""<script {value}></script>\n""".encode()
 
 
 class CSSResource(Resource):
@@ -39,4 +39,4 @@ class CSSResource(Resource):
             value += f' crossorigin="{self.crossorigin}"'
         if self.integrity:
             value += f' integrity="{self.integrity}"'
-        return f"""<link rel="stylesheet" {value} />\r\n""".encode()
+        return f"""<link rel="stylesheet" {value} />\n""".encode()
