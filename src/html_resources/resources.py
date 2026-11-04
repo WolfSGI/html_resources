@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import NamedTuple
+from typing import NamedTuple, Union
 from pathlib import PurePosixPath
 
 
@@ -9,10 +9,9 @@ def multi_urljoin(*parts):
 
 @dataclass(frozen=True)
 class InlineResource:
-    type: str
     code: str
     bottom: bool = False
-    dependencies: tuple["Resource" | "InlineResource"] | None = None
+    dependencies: tuple[Union["Resource", "InlineResource"]] | None = None
 
     def render(self, application_uri) -> bytes:
         pass
