@@ -1,10 +1,10 @@
 from functools import lru_cache
 from collections.abc import Hashable, MutableSet, Iterable
 from orderedsets import OrderedSet
-from .resources import Resource, JSResource, CSSResource
+from .resources import InlineResource, Resource, JSResource, CSSResource
 
 
-def lineage(resource: Resource):
+def lineage(resource: Resource | InlineResource):
     if resource.dependencies:
         for dependency in resource.dependencies:
             yield from lineage(dependency)
@@ -12,11 +12,11 @@ def lineage(resource: Resource):
 
 
 @lru_cache(maxsize=100)
-def expand_resource(resource: Resource):
+def expand_resource(resource: Resource | InlineResource):
     return tuple(lineage(resource))
 
 
-def expand_resources(resources: Iterable[Resource]):
+def expand_resources(resources: Iterable[Resource | InlineResource]):
     seen = set()
     for resource in resources:
         for parent in expand_resource(resource):
@@ -28,7 +28,7 @@ def expand_resources(resources: Iterable[Resource]):
     del seen
 
 
-class NeededResources(Hashable, MutableSet[Resource]):
+class NeededResources(Hashable, MutableSet[InlineResource | Resource]):
 
     __hash__ = MutableSet._hash
 
@@ -72,7 +72,7 @@ class NeededResources(Hashable, MutableSet[Resource]):
         self.data = OrderedSet((*other, *self.data))
         return self
 
-    def unfold(self) -> tuple[Resource, ...]:
+    def unfold(self) -> tuple[Resource | InlineResource, ...]:
         return tuple(expand_resources(self.data))
 
     def add_resource(

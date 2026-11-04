@@ -32,12 +32,12 @@ class Library(Filestore):
     }
 
     def bind(
-        self,
-        path: str | PurePosixPath,
-        *,
-        name: str | None = None,
-        bottom: bool = False,
-        dependencies: Sequence[Resource] | None = None,
+            self,
+            path: str | PurePosixPath,
+            *,
+            name: str | None = None,
+            bottom: bool = False,
+            dependencies: Sequence[Resource] | None = None,
     ) -> Resource:
         path = PurePosixPath(path)
         if path.is_absolute():
