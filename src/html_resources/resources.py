@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import NamedTuple, Union
 from pathlib import PurePosixPath
+from functools import cached_property
+from .store import FileInfo
 
 
 def multi_urljoin(*parts):
@@ -12,6 +14,7 @@ class InlineResource:
     code: str
     bottom: bool = False
     dependencies: tuple[Union["Resource", "InlineResource"]] | None = None
+    fileinfo: FileInfo | None = None
 
     def render(self, application_uri) -> bytes:
         pass
@@ -42,6 +45,11 @@ class Resource:
     crossorigin: str | None = None
     bottom: bool = False
     dependencies: tuple["Resource"] | None = None
+    fileinfo: FileInfo | None = None
+
+    @property
+    def inline(self):
+        return None
 
     def render(self, application_uri) -> bytes:
         pass
@@ -49,6 +57,21 @@ class Resource:
 
 @dataclass(frozen=True)
 class JSResource(Resource):
+
+    @cached_property
+    def inline(self):
+        if self.fileinfo is None:
+            raise NotImplementedError(
+                'Only local files from a file store can be inlined.')
+
+        with self.fileinfo.filepath.open('r') as fd:
+            code = fd.read()
+        return InlineJSResource(
+            code=code,
+            bottom=self.bottom,
+            dependencies=self.dependencies,
+            fileinfo=self.fileinfo
+        )
 
     def render(self, application_uri: str = "") -> bytes:
         url = multi_urljoin(self.root or application_uri, self.path)
@@ -62,6 +85,22 @@ class JSResource(Resource):
 
 @dataclass(frozen=True)
 class CSSResource(Resource):
+
+    @cached_property
+    def inline(self):
+        if self.fileinfo is None:
+            raise NotImplementedError(
+                'Only local files from a file store can be inlined.')
+
+        with self.fileinfo.filepath.open('r') as fd:
+            code = fd.read()
+
+        return InlineCSSResource(
+            code=code,
+            bottom=self.bottom,
+            dependencies=self.dependencies,
+            fileinfo=self.fileinfo
+        )
 
     def render(self, application_uri: str = "") -> bytes:
         url = multi_urljoin(self.root or application_uri, self.path)

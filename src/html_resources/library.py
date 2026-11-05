@@ -71,5 +71,6 @@ class Library(Filestore):
             bottom=bottom,
             integrity=info.digest,
             dependencies=dependencies,
+            fileinfo=info,
         )
         return resource
